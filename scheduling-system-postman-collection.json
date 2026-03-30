@@ -1,0 +1,313 @@
+{
+	"info": {
+		"_postman_id": "{{$guid}}",
+		"name": "Scheduling System API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "Collection para testar a API do Sistema de Agendamento de Retornos Médicos."
+	},
+	"item": [
+		{
+			"name": "Professionals",
+			"item": [
+				{
+					"name": "Create Professional (Example)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dr. João Silva\",\n    \"email\": \"joao.silva@example.com\",\n    \"crm\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/professionals",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"professionals"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Professionals (Example)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/professionals",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"professionals"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{
+					"name": "Create Patient (Example)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Maria Souza\",\n    \"email\": \"maria.souza@example.com\",\n    \"phone\": \"+5511987654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/patients",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"patients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Patients (Example)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/patients",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"patients"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Return Requests",
+			"item": [
+				{
+					"name": "Create Return Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\npm.environment.set(\"lastReturnRequestId\", jsonData.id);\nconsole.log(\"lastReturnRequestId: \" + jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"professionalId\": \"{{professionalId}}\",\n    \"patientId\": \"{{patientId}}\",\n    \"priority\": \"ALTA\",\n    \"deadline\": \"2026-04-30\",\n    \"notes\": \"Paciente precisa de retorno urgente para acompanhamento.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/return-requests",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"return-requests"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Pending Return Requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/return-requests/pending",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"return-requests",
+								"pending"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Get Available Slots",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/available-slots?professionalId={{professionalId}}&date=2026-04-20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"available-slots"
+							],
+							"query": [
+								{
+									"key": "professionalId",
+									"value": "{{professionalId}}"
+								},
+								{
+									"key": "date",
+									"value": "2026-04-20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\npm.environment.set(\"lastAppointmentId\", jsonData.id);\nconsole.log(\"lastAppointmentId: \" + jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/request?requestId={{lastReturnRequestId}}&dateTime=2026-04-20T09:00:00",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"request"
+							],
+							"query": [
+								{
+									"key": "requestId",
+									"value": "{{lastReturnRequestId}}"
+								},
+								{
+									"key": "dateTime",
+									"value": "2026-04-20T09:00:00"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Appointment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/{{lastAppointmentId}}/confirm",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"{{lastAppointmentId}}",
+								"confirm"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set a default baseUrl if not already set\nif (!pm.environment.get(\"baseUrl\")) {\n    pm.environment.set(\"baseUrl\", \"http://localhost:8080\");\n}\n\n// Generate UUIDs for professional and patient if not already set\nif (!pm.environment.get(\"professionalId\")) {\n    pm.environment.set(\"professionalId\", pm.variables.replaceIn(\"{{$guid}}\"));\n}\nif (!pm.environment.get(\"patientId\")) {\n    pm.environment.set(\"patientId\", pm.variables.replaceIn(\"{{$guid}}\"));\n}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "professionalId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "patientId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "lastReturnRequestId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "lastAppointmentId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
