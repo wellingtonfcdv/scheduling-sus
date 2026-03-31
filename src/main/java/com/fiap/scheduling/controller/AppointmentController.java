@@ -1,5 +1,6 @@
 package com.fiap.scheduling.controller;
 
+import com.fiap.scheduling.dto.AppointmentDTO;
 import com.fiap.scheduling.entity.Appointment;
 import com.fiap.scheduling.entity.Professional;
 import com.fiap.scheduling.service.AppointmentService;
@@ -30,7 +31,7 @@ public class AppointmentController {
     }
 
     @PostMapping("/request")
-    public ResponseEntity<Appointment> requestAppointment(
+    public ResponseEntity<AppointmentDTO> requestAppointment(
             @RequestParam UUID requestId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTime) {
         
@@ -38,7 +39,7 @@ public class AppointmentController {
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<Appointment> confirmAppointment(@PathVariable UUID id) {
+    public ResponseEntity<AppointmentDTO> confirmAppointment(@PathVariable UUID id) {
         return ResponseEntity.ok(appointmentService.confirmAppointment(id));
     }
 }
