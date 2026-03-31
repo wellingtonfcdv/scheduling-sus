@@ -1,5 +1,6 @@
 package com.fiap.scheduling.service;
 
+import com.fiap.scheduling.dto.AppointmentDTO;
 import com.fiap.scheduling.entity.Appointment;
 import com.fiap.scheduling.entity.Professional;
 import com.fiap.scheduling.entity.ReturnRequest;
@@ -44,7 +45,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public Appointment requestAppointment(UUID requestId, LocalDateTime dateTime) {
+    public AppointmentDTO requestAppointment(UUID requestId, LocalDateTime dateTime) {
         ReturnRequest request = returnRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Solicitação não encontrada"));
 
@@ -71,11 +72,12 @@ public class AppointmentService {
                 .confirmationLink(UUID.randomUUID().toString())
                 .build();
 
-        return appointmentRepository.save(appointment);
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        return convertToDTO(savedAppointment);
     }
 
     @Transactional
-    public Appointment confirmAppointment(UUID appointmentId) {
+    public AppointmentDTO confirmAppointment(UUID appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
@@ -94,6 +96,20 @@ public class AppointmentService {
                 savedAppointment.getAppointmentDateTime().toString()
         );
 
-        return savedAppointment;
+        return convertToDTO(savedAppointment);
+    }
+
+    private AppointmentDTO convertToDTO(Appointment entity) {
+        return AppointmentDTO.builder()
+                .id(entity.getId())
+                .returnRequestId(entity.getReturnRequest().getId())
+                .professionalId(entity.getProfessional().getId())
+                .professionalName(entity.getProfessional().getName())
+                .patientId(entity.getPatient().getId())
+                .patientName(entity.getPatient().getName())
+                .appointmentDateTime(entity.getAppointmentDateTime())
+                .status(entity.getStatus())
+                .confirmationLink(entity.getConfirmationLink())
+                .build();
     }
 }
