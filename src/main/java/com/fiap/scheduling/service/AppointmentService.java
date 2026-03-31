@@ -48,6 +48,16 @@ public class AppointmentService {
         ReturnRequest request = returnRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Solicitação não encontrada"));
 
+        // Verifica se já existe um agendamento para esta solicitação
+        if (appointmentRepository.existsByReturnRequest(request)) {
+            throw new RuntimeException("Esta solicitação já possui um agendamento");
+        }
+
+        // Verifica se a solicitação já foi agendada/concluída
+        if (request.getStatus() != ReturnRequestStatus.PENDENTE) {
+            throw new RuntimeException("Solicitação não está disponível para agendamento (Status: " + request.getStatus() + ")");
+        }
+
         if (appointmentRepository.existsByProfessionalAndAppointmentDateTime(request.getProfessional(), dateTime)) {
             throw new RuntimeException("Horário não disponível");
         }
