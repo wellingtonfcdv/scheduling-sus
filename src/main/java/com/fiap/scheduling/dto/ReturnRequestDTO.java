@@ -1,7 +1,9 @@
 package com.fiap.scheduling.dto;
 
 import com.fiap.scheduling.enums.Priority;
+import com.fiap.scheduling.enums.ReturnRequestStatus;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +13,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ReturnRequestDTO {
     private UUID id;
     private UUID professionalId;
@@ -20,5 +23,5 @@ public class ReturnRequestDTO {
     private Priority priority;
     private LocalDate deadline;
     private String notes;
-    private RequestStatus status;
+    private ReturnRequestStatus status;
 }

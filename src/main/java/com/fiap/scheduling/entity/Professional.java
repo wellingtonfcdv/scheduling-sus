@@ -14,8 +14,14 @@ import java.util.UUID;
 public class Professional {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @PrePersist
+    public void ensureId() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 
     @Column(nullable = false)
     private String name;

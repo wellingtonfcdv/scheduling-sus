@@ -15,8 +15,14 @@ import java.util.UUID;
 public class Appointment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @PrePersist
+    public void ensureId() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "return_request_id", nullable = false)
