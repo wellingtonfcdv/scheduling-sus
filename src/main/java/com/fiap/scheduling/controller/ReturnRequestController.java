@@ -26,6 +26,7 @@ public class ReturnRequestController {
                 .patient(Patient.builder().id(dto.getPatientId()).build())
                 .priority(dto.getPriority())
                 .deadline(dto.getDeadline())
+                .description(dto.getDescription())
                 .notes(dto.getNotes())
                 .build();
 

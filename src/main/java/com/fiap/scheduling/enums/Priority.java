@@ -1,5 +1,5 @@
 package com.fiap.scheduling.enums;
 
 public enum Priority {
-    ALTA, MEDIA, BAIXA
+    URGENTE, ALTA, MEDIA, BAIXA
 }

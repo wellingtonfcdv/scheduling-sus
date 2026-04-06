@@ -45,6 +45,8 @@ public class ReturnRequest {
     @Column(nullable = false)
     private LocalDate deadline;
 
+    private String description;
+
     private String notes;
 
     @Enumerated(EnumType.STRING)
