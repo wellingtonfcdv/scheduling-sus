@@ -28,6 +28,7 @@ services:
       MAIL_PORT: 587
       MAIL_USER: medconnectfiap@gmail.com
       MAIL_PASSWORD: "ztwo xcks gvmp krai"
+      ADMIN_EMAIL: admin@unidade-sus.com
     depends_on:
       - db
 

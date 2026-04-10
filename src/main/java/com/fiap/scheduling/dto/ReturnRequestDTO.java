@@ -22,6 +22,7 @@ public class ReturnRequestDTO {
     private String patientName;
     private Priority priority;
     private LocalDate deadline;
+    private String description;
     private String notes;
     private ReturnRequestStatus status;
 }
