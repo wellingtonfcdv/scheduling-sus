@@ -23,7 +23,7 @@ A aplicação segue o padrão **MVC (Model-View-Controller)** com foco em princ�
 
 *   **Linguagem:** Java 21 (LTS)
 *   **Framework:** Spring Boot 3.2.4
-*   **Persistência:** Spring Data JPA / Hibernate
+*   **Persistência:** Spring Data JPA / Hibernate 6
 *   **Banco de Dados:** PostgreSQL 15
 *   **Gerenciamento de Dependências:** Maven
 *   **Conteinerização:** Docker e Docker Compose

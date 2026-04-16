@@ -18,8 +18,14 @@ import java.util.UUID;
 public class ReturnRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @PrePersist
+    public void ensureId() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "professional_id", nullable = false)
@@ -38,6 +44,8 @@ public class ReturnRequest {
 
     @Column(nullable = false)
     private LocalDate deadline;
+
+    private String description;
 
     private String notes;
 

@@ -1,10 +1,12 @@
 package com.fiap.scheduling.service;
 
 import com.fiap.scheduling.dto.ReturnRequestDTO;
+import com.fiap.scheduling.entity.Appointment;
 import com.fiap.scheduling.entity.Patient;
 import com.fiap.scheduling.entity.Professional;
 import com.fiap.scheduling.entity.ReturnRequest;
 import com.fiap.scheduling.enums.ReturnRequestStatus;
+import com.fiap.scheduling.repository.AppointmentRepository;
 import com.fiap.scheduling.repository.PatientRepository;
 import com.fiap.scheduling.repository.ProfessionalRepository;
 import com.fiap.scheduling.repository.ReturnRequestRepository;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,9 @@ public class ReturnRequestService {
     private final ReturnRequestRepository returnRequestRepository;
     private final ProfessionalRepository professionalRepository;
     private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final AppointmentService appointmentService;
+    private final EmailService emailService;
 
     @Transactional
     public ReturnRequest createRequest(ReturnRequest request) {
@@ -37,7 +43,32 @@ public class ReturnRequestService {
         request.setRequestDate(LocalDateTime.now());
         request.setStatus(ReturnRequestStatus.PENDENTE);
 
-        return returnRequestRepository.save(request);
+        ReturnRequest savedRequest = returnRequestRepository.save(request);
+
+        // ✅ NOVO: Auto-alocar agendamento baseado na prioridade
+        try {
+            LocalDateTime appointmentDateTime = appointmentService.findNextAvailableSlotByPriority(
+                professional, 
+                request.getPriority().toString()
+            );
+
+            Appointment appointment = Appointment.builder()
+                    .returnRequest(savedRequest)
+                    .professional(professional)
+                    .patient(patient)
+                    .appointmentDateTime(appointmentDateTime)
+                    .status("PENDENTE_CONFIRMACAO")
+                    .confirmationLink(UUID.randomUUID().toString())
+                    .build();
+
+            appointmentRepository.save(appointment);
+
+        } catch (RuntimeException e) {
+            // Se não conseguir alocar, apenas registra log
+            System.err.println("Aviso: Não foi possível alocar automaticamente o agendamento. " + e.getMessage());
+        }
+
+        return savedRequest;
     }
 
     // ALTERADO: Agora retorna uma lista de DTOs para evitar erro de Lazy Loading/Proxy
@@ -62,6 +93,7 @@ public class ReturnRequestService {
         dto.setId(entity.getId());
         dto.setPriority(entity.getPriority());
         dto.setDeadline(entity.getDeadline());
+        dto.setDescription(entity.getDescription());
         dto.setNotes(entity.getNotes());
         dto.setStatus(entity.getStatus());
 

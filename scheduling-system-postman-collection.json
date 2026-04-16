@@ -110,13 +110,13 @@
 			"name": "Return Requests",
 			"item": [
 				{
-					"name": "Create Return Request",
+					"name": "Create Return Request (Auto-Allocate)",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();\npm.environment.set(\"lastReturnRequestId\", jsonData.id);\nconsole.log(\"lastReturnRequestId: \" + jsonData.id);"
+									"var jsonData = pm.response.json();\npm.environment.set(\"lastReturnRequestId\", jsonData.id);\npm.environment.set(\"lastAppointmentId\", jsonData.appointment.id);\nconsole.log(\"Return Request ID: \" + jsonData.id);\nconsole.log(\"Appointment ID (pending confirmation): \" + jsonData.appointment.id);\nconsole.log(\"Appointment Status: \" + jsonData.appointment.status);"
 								],
 								"type": "text/javascript"
 							}
@@ -132,7 +132,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"professionalId\": \"{{professionalId}}\",\n    \"patientId\": \"{{patientId}}\",\n    \"priority\": \"ALTA\",\n    \"deadline\": \"2026-04-30\",\n    \"notes\": \"Paciente precisa de retorno urgente para acompanhamento.\"\n}"
+							"raw": "{\n    \"professionalId\": \"{{professionalId}}\",\n    \"patientId\": \"{{patientId}}\",\n    \"priority\": \"ALTA\",\n    \"description\": \"Acompanhamento pós-cirurgia\",\n    \"deadline\": 7,\n    \"notes\": \"Paciente diabético, comparecer 10 min antes\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/return-requests",
@@ -172,27 +172,50 @@
 			"name": "Appointments",
 			"item": [
 				{
-					"name": "Get Available Slots",
+					"name": "Get Available Dates (Next 7 days)",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/appointments/available-slots?professionalId={{professionalId}}&date=2026-04-20",
+							"raw": "{{baseUrl}}/api/appointments/datas-disponiveis/{{professionalId}}?proximos=7",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"appointments",
-								"available-slots"
+								"datas-disponiveis",
+								"{{professionalId}}"
 							],
 							"query": [
 								{
-									"key": "professionalId",
-									"value": "{{professionalId}}"
-								},
+									"key": "proximos",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Time Slots for Date",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/horarios-disponiveis/{{professionalId}}?data=2026-04-20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"horarios-disponiveis",
+								"{{professionalId}}"
+							],
+							"query": [
 								{
-									"key": "date",
+									"key": "data",
 									"value": "2026-04-20"
 								}
 							]
@@ -201,39 +224,25 @@
 					"response": []
 				},
 				{
-					"name": "Request Appointment",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();\npm.environment.set(\"lastAppointmentId\", jsonData.id);\nconsole.log(\"lastAppointmentId: \" + jsonData.id);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
+					"name": "View Professional's Schedule",
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/appointments/request?requestId={{lastReturnRequestId}}&dateTime=2026-04-20T09:00:00",
+							"raw": "{{baseUrl}}/api/appointments/agenda-profissional/{{professionalId}}?data=2026-04-20",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"appointments",
-								"request"
+								"agenda-profissional",
+								"{{professionalId}}"
 							],
 							"query": [
 								{
-									"key": "requestId",
-									"value": "{{lastReturnRequestId}}"
-								},
-								{
-									"key": "dateTime",
-									"value": "2026-04-20T09:00:00"
+									"key": "data",
+									"value": "2026-04-20"
 								}
 							]
 						}
@@ -242,6 +251,17 @@
 				},
 				{
 					"name": "Confirm Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\nconsole.log(\"Appointment confirmed: \" + jsonData.id);\nconsole.log(\"Status: \" + jsonData.status);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -259,8 +279,180 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Reject Appointment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"razao\": \"Horário não está mais disponível\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/{{lastAppointmentId}}/rejeitar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"{{lastAppointmentId}}",
+								"rejeitar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\nconsole.log(\"Appointment cancelled: \" + jsonData.id);\nconsole.log(\"Status: \" + jsonData.status);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"motivo\": \"Desistência do paciente\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/{{lastAppointmentId}}/cancelar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"{{lastAppointmentId}}",
+								"cancelar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Batch by Date",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\nconsole.log(\"Total confirmados: \" + jsonData.totalConfirmados);\nconsole.log(\"Mensagem: \" + jsonData.mensagem);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"professionalId\": \"{{professionalId}}\",\n    \"data\": \"2026-04-20\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/confirm-batch/por-data",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"confirm-batch",
+								"por-data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Batch by Professional",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\nconsole.log(\"Total confirmados: \" + jsonData.totalConfirmados);\nconsole.log(\"Mensagem: \" + jsonData.mensagem);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"professionalId\": \"{{professionalId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/confirm-batch/por-medico",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"confirm-batch",
+								"por-medico"
+							]
+						}
+					},
+					"response": []
 				}
 			]
+		},
+		{
+			"name": "01 - Complete Flow Documentation",
+			"item": [
+				{
+					"name": "FLOW DOCUMENTATION",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "🔄 NOVO FLUXO (Sem emails para admin):\n\n1. Médico cria solicitação de retorno\n   POST /api/return-requests\n   - Envia: professionalId, patientId, priority, deadline (dias), description, notes\n   - RESPOSTA: retornRequestId, appointmentId com status PENDENTE_CONFIRMACAO\n\n2. Sistema aloca automaticamente\n   - Respeita deadlines: URGENTE (3 dias), ALTA (7 dias), MEDIA (30 dias), BAIXA (90 dias)\n   - Encontra próximo slot disponível\n   - Cria appointment em status PENDENTE_CONFIRMACAO\n\n3. Admin visualiza agendamentos pendentes\n   GET /api/appointments/agenda-profissional/{professionalId}?data=XXXX\n   - Mostra appts PENDENTES + CONFIRMADOS\n\n4. Admin confirma (individual ou lote)\n   POST /api/appointments/{appointmentId}/confirm\n   - Email automático para PACIENTE (confirmação)\n\n   OU (em lote por data):\n   POST /api/appointments/confirm-batch/por-data\n   - Body: {professionalId, data}\n   - Confirma todos pendentes dessa data\n\n   OU (em lote por médico):\n   POST /api/appointments/confirm-batch/por-medico\n   - Body: {professionalId}\n   - Confirma todos pendentes do médico\n\n5. Admin pode rejeitar\n   POST /api/appointments/{appointmentId}/rejeitar\n   - Body: {razao}\n   - Email para PACIENTE (será contatado)\n\n6. Para visualizar disponibilidade\n   GET /api/appointments/datas-disponiveis/{professionalId}?proximos=7\n   - Datas com vagas nos próximos N dias\n\n   GET /api/appointments/horarios-disponiveis/{professionalId}?data=XXXX\n   - Horários livres em uma data específica"
 		}
 	],
 	"event": [
@@ -307,6 +499,11 @@
 		{
 			"key": "lastAppointmentId",
 			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "appointmentDate",
+			"value": "2026-04-20",
 			"type": "string"
 		}
 	]
